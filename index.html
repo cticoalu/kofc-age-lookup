@@ -1,159 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KofC Age Group Lookup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-<style>
-  .wrap { padding: 1.5rem 0; max-width: 520px; margin: 0 auto; }
-  .step { margin-bottom: 1.5rem; }
-  .step-label { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px; font-weight: 500; }
-  .step-sub { font-size: 12px; color: var(--color-text-tertiary); margin-top: 6px; }
-  .event-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .evt-card { padding: 14px 12px; border-radius: var(--border-radius-lg); border: 2px solid var(--color-border-tertiary); background: var(--color-background-primary); cursor: pointer; transition: all 0.15s; text-align: center; }
-  .evt-card:hover { border-color: var(--color-border-secondary); background: var(--color-background-secondary); }
-  .evt-card .icon { font-size: 28px; margin-bottom: 6px; display: block; }
-  .evt-card .name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
-  .evt-card .cutoff-tag { display: inline-block; margin-top: 6px; font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--color-background-secondary); color: var(--color-text-secondary); border: 0.5px solid var(--color-border-tertiary); }
-  .evt-card.active-soccer { border-color: #1D9E75; background: #E1F5EE; }
-  .evt-card.active-soccer .name { color: #085041; }
-  .evt-card.active-soccer .cutoff-tag { background: #9FE1CB; color: #085041; border-color: #5DCAA5; }
-  .evt-card.active-free { border-color: #378ADD; background: #E6F1FB; }
-  .evt-card.active-free .name { color: #0C447C; }
-  .evt-card.active-free .cutoff-tag { background: #B5D4F4; color: #0C447C; border-color: #85B7EB; }
-  .result-card { border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); padding: 1rem 1.25rem; min-height: 64px; display: flex; align-items: center; background: var(--color-background-secondary); }
-  .result-card.ok { border-color: var(--color-border-success); background: var(--color-background-success); }
-  .result-card.no { border-color: var(--color-border-danger); background: var(--color-background-danger); }
-  .result-text { font-size: 15px; line-height: 1.65; }
-  .result-text.ok { color: var(--color-text-success); }
-  .result-text.no { color: var(--color-text-danger); }
-  .bold { font-weight: 500; }
-</style>
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      background: #f9f9f8;
+      color: #1a1a1a;
+      padding: 1.5rem 1rem;
+    }
 
-<div class="wrap">
-  <h2 class="sr-only">Knights of Columbus age group lookup</h2>
+    .wrap {
+      max-width: 520px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid #e5e5e3;
+      padding: 1.5rem;
+    }
 
-  <div class="step">
-    <div class="step-label">1 — Which event?</div>
-    <div class="event-grid">
-      <div class="evt-card active-soccer" id="card-soccer" onclick="pick('soccer')">
-        <span class="icon" aria-hidden="true">⚽</span>
-        <div class="name">Soccer Challenge</div>
-        <span class="cutoff-tag">Age as of Sept. 1</span>
+    h1 {
+      font-size: 18px;
+      font-weight: 500;
+      color: #1a1a1a;
+      margin-bottom: 1.5rem;
+    }
+
+    .step { margin-bottom: 1.5rem; }
+
+    .step-label {
+      font-size: 13px;
+      color: #6b6b6b;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .step-sub {
+      font-size: 12px;
+      color: #9a9a9a;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .event-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .evt-card {
+      padding: 16px 12px;
+      border-radius: 12px;
+      border: 2px solid #e5e5e3;
+      background: #ffffff;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .evt-card:hover { border-color: #c5c5c3; background: #f5f5f4; }
+    .evt-card:active { transform: scale(0.98); }
+
+    .evt-card .icon { font-size: 32px; margin-bottom: 8px; display: block; }
+
+    .evt-card .name {
+      font-size: 14px;
+      font-weight: 500;
+      color: #1a1a1a;
+    }
+
+    .evt-card .cutoff-tag {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      background: #f0f0ee;
+      color: #6b6b6b;
+      border: 1px solid #e5e5e3;
+    }
+
+    .evt-card.active-soccer { border-color: #1D9E75; background: #E1F5EE; }
+    .evt-card.active-soccer .name { color: #085041; }
+    .evt-card.active-soccer .cutoff-tag { background: #9FE1CB; color: #085041; border-color: #5DCAA5; }
+
+    .evt-card.active-free { border-color: #378ADD; background: #E6F1FB; }
+    .evt-card.active-free .name { color: #0C447C; }
+    .evt-card.active-free .cutoff-tag { background: #B5D4F4; color: #0C447C; border-color: #85B7EB; }
+
+    input[type="text"], input[type="date"] {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 15px;
+      color: #1a1a1a;
+      background: #ffffff;
+      border: 1px solid #d0d0ce;
+      border-radius: 8px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    input[type="text"]:focus, input[type="date"]:focus {
+      border-color: #378ADD;
+      box-shadow: 0 0 0 3px rgba(55,138,221,0.15);
+    }
+
+    input[type="text"] {
+      width: 120px;
+      text-align: center;
+      letter-spacing: 0.08em;
+    }
+
+    input[type="date"] { width: 100%; }
+
+    .result-card {
+      border-radius: 12px;
+      border: 1px solid #e5e5e3;
+      padding: 1rem 1.25rem;
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      background: #f5f5f4;
+      transition: all 0.2s;
+    }
+
+    .result-card.ok {
+      border-color: #1D9E75;
+      background: #E1F5EE;
+    }
+
+    .result-card.no {
+      border-color: #E24B4A;
+      background: #FCEBEB;
+    }
+
+    .result-text {
+      font-size: 15px;
+      line-height: 1.65;
+      color: #9a9a9a;
+    }
+
+    .result-text.ok { color: #085041; }
+    .result-text.no { color: #7a1f1f; }
+    .bold { font-weight: 500; }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 0; background: #ffffff; }
+      .wrap { border-radius: 0; border: none; padding: 1.25rem 1rem; }
+      .evt-card { padding: 14px 8px; }
+      .evt-card .icon { font-size: 28px; }
+      .evt-card .name { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>KofC age group lookup</h1>
+    <h2 class="sr-only">Knights of Columbus age group lookup tool</h2>
+
+    <div class="step">
+      <div class="step-label">1 — Which event?</div>
+      <div class="event-grid">
+        <div class="evt-card active-soccer" id="card-soccer" onclick="pick('soccer')">
+          <span class="icon" aria-hidden="true">⚽</span>
+          <div class="name">Soccer Challenge</div>
+          <span class="cutoff-tag">Age as of Sept. 1</span>
+        </div>
+        <div class="evt-card" id="card-free" onclick="pick('free')">
+          <span class="icon" aria-hidden="true">🏀</span>
+          <div class="name">Free Throw Championship</div>
+          <span class="cutoff-tag">Age as of Jan. 1</span>
+        </div>
       </div>
-      <div class="evt-card" id="card-free" onclick="pick('free')">
-        <span class="icon" aria-hidden="true">🏀</span>
-        <div class="name">Free Throw Championship</div>
-        <span class="cutoff-tag">Age as of Jan. 1</span>
-      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">2 — Year of the event</div>
+      <input type="text" id="yr-input" maxlength="4" inputmode="numeric" placeholder="YYYY" oninput="onYearInput(this)" />
+      <div class="step-sub" id="cutoff-note"></div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">3 — Contestant's date of birth</div>
+      <input type="date" id="dob" onchange="update()" />
+    </div>
+
+    <div class="result-card" id="rcard">
+      <span class="result-text" id="rtext">Complete the steps above to see the age group.</span>
     </div>
   </div>
 
-  <div class="step">
-    <div class="step-label">2 — Year of the event</div>
-    <input type="text" id="yr-input" maxlength="4" inputmode="numeric" placeholder="YYYY"
-      oninput="onYearInput(this)"
-      style="width:120px; text-align:center; font-size:16px; letter-spacing:0.08em;" />
-    <div class="step-sub" id="cutoff-note"></div>
-  </div>
+  <script>
+    let event = 'soccer';
 
-  <div class="step">
-    <div class="step-label">3 — Contestant's date of birth</div>
-    <input type="date" id="dob" onchange="update()" style="width:100%;" />
-  </div>
+    function pick(e) {
+      event = e;
+      document.getElementById('card-soccer').className = 'evt-card' + (e === 'soccer' ? ' active-soccer' : '');
+      document.getElementById('card-free').className = 'evt-card' + (e === 'free' ? ' active-free' : '');
+      refreshNote();
+      update();
+    }
 
-  <div class="result-card" id="rcard">
-    <span class="result-text" style="color:var(--color-text-tertiary);">Complete the steps above to see the age group.</span>
-  </div>
-</div>
+    function onYearInput(el) {
+      el.value = el.value.replace(/\D/g, '').slice(0, 4);
+      refreshNote();
+      update();
+    }
 
-<script>
-  let event = 'soccer';
+    function getYear() {
+      const v = document.getElementById('yr-input').value;
+      return v.length === 4 ? parseInt(v) : null;
+    }
 
-  function pick(e) {
-    event = e;
-    document.getElementById('card-soccer').className = 'evt-card' + (e === 'soccer' ? ' active-soccer' : '');
-    document.getElementById('card-free').className = 'evt-card' + (e === 'free' ? ' active-free' : '');
-    refreshNote();
-    update();
-  }
-
-  function onYearInput(el) {
-    el.value = el.value.replace(/\D/g, '').slice(0, 4);
-    refreshNote();
-    update();
-  }
-
-  function getYear() {
-    const v = document.getElementById('yr-input').value;
-    return v.length === 4 ? parseInt(v) : null;
-  }
-
-  function refreshNote() {
-    const y = getYear();
-    const note = document.getElementById('cutoff-note');
-    if (!y) {
+    function refreshNote() {
+      const y = getYear();
+      const note = document.getElementById('cutoff-note');
+      if (!y) {
+        note.innerHTML = event === 'soccer'
+          ? 'Age is always determined as of <strong>Sept. 1</strong> of that year, per the rulebook.'
+          : 'Age is always determined as of <strong>January 1</strong> of that year, per the rulebook.';
+        return;
+      }
       note.innerHTML = event === 'soccer'
-        ? 'Age is always determined as of <strong>Sept. 1</strong> of that year, per the rulebook.'
-        : 'Age is always determined as of <strong>January 1</strong> of that year, per the rulebook.';
-      return;
+        ? `Age cutoff: <strong>Sept. 1, ${y}</strong> — regardless of the actual event date.`
+        : `Age cutoff: <strong>January 1, ${y}</strong> — regardless of the actual event date.`;
     }
-    note.innerHTML = event === 'soccer'
-      ? `Age cutoff: <strong>Sept. 1, ${y}</strong> — regardless of the actual event date.`
-      : `Age cutoff: <strong>January 1, ${y}</strong> — regardless of the actual event date.`;
-  }
 
-  function update() {
-    const y = getYear();
-    const dob = document.getElementById('dob').value;
-    const card = document.getElementById('rcard');
-    const text = card.querySelector('span');
-    if (!y || !dob) {
-      card.className = 'result-card';
-      text.className = 'result-text';
-      text.style.color = 'var(--color-text-tertiary)';
-      text.innerHTML = 'Complete the steps above to see the age group.';
-      return;
+    function update() {
+      const y = getYear();
+      const dob = document.getElementById('dob').value;
+      const card = document.getElementById('rcard');
+      const text = document.getElementById('rtext');
+      if (!y || !dob) {
+        card.className = 'result-card';
+        text.className = 'result-text';
+        text.innerHTML = 'Complete the steps above to see the age group.';
+        return;
+      }
+      const [by, bm, bd] = dob.split('-').map(Number);
+      const res = event === 'soccer' ? calcSoccer(by, bm, bd, y) : calcFree(by, bm, bd, y);
+      card.className = 'result-card ' + res.status;
+      text.className = 'result-text ' + res.status;
+      text.innerHTML = res.msg;
     }
-    const [by, bm, bd] = dob.split('-').map(Number);
-    const res = event === 'soccer' ? calcSoccer(by, bm, bd, y) : calcFree(by, bm, bd, y);
-    card.className = 'result-card ' + res.status;
-    text.className = 'result-text ' + res.status;
-    text.style.color = '';
-    text.innerHTML = res.msg;
-  }
 
-  function calcSoccer(by, bm, bd, eventYear) {
-    const cutoff = new Date(eventYear, 8, 1);
-    const dob = new Date(by, bm - 1, bd);
-    const age = ageAt(dob, cutoff);
-    if (age < 9) return { status:'no', msg:`<span class="bold">Too young</span> — born ${fmt(by,bm,bd)}, this contestant would only be ${age} on Sept. 1, ${eventYear}. Minimum eligible age is 9.` };
-    if (age > 14) return { status:'no', msg:`<span class="bold">Too old</span> — born ${fmt(by,bm,bd)}, this contestant would be ${age} on Sept. 1, ${eventYear}. Maximum eligible age is 14.` };
-    const start = new Date(eventYear - age, 8, 2);
-    const end = new Date(eventYear - age + 1, 8, 1);
-    return { status:'ok', msg:`Age group: <span class="bold">${age}</span> — born ${fmt(by,bm,bd)}, this contestant is ${age} as of Sept. 1, ${eventYear}, because their birth date falls in the age-${age} window (${fmtD(start)} – ${fmtD(end)}).` };
-  }
+    function calcSoccer(by, bm, bd, eventYear) {
+      const cutoff = new Date(eventYear, 8, 1);
+      const dob = new Date(by, bm - 1, bd);
+      const age = ageAt(dob, cutoff);
+      if (age < 9) return { status:'no', msg:`<span class="bold">Too young</span> — born ${fmt(by,bm,bd)}, this contestant would only be ${age} on Sept. 1, ${eventYear}. Minimum eligible age is 9.` };
+      if (age > 14) return { status:'no', msg:`<span class="bold">Too old</span> — born ${fmt(by,bm,bd)}, this contestant would be ${age} on Sept. 1, ${eventYear}. Maximum eligible age is 14.` };
+      const start = new Date(eventYear - age, 8, 2);
+      const end = new Date(eventYear - age + 1, 8, 1);
+      return { status:'ok', msg:`Age group: <span class="bold">${age}</span> — born ${fmt(by,bm,bd)}, this contestant is ${age} as of Sept. 1, ${eventYear}, because their birth date falls in the age-${age} window (${fmtD(start)} – ${fmtD(end)}).` };
+    }
 
-  function calcFree(by, bm, bd, eventYear) {
-    const cutoff = new Date(eventYear, 0, 1);
-    const dob = new Date(by, bm - 1, bd);
-    const age = ageAt(dob, cutoff);
-    if (age < 9) return { status:'no', msg:`<span class="bold">Too young</span> — born ${fmt(by,bm,bd)}, this contestant would only be ${age} on January 1, ${eventYear}. Minimum eligible age is 9.` };
-    if (age > 14) return { status:'no', msg:`<span class="bold">Too old</span> — born ${fmt(by,bm,bd)}, this contestant would be ${age} on January 1, ${eventYear}. Maximum eligible age is 14.` };
-    const jan1Edge = (bm === 1 && bd === 1) ? ` (born exactly on Jan. 1 — already turned ${age} on the cutoff date itself)` : '';
-    return { status:'ok', msg:`Age group: <span class="bold">${age}</span> — born ${fmt(by,bm,bd)}, this contestant is ${age} as of January 1, ${eventYear}, because they were born in ${by}${jan1Edge}.` };
-  }
+    function calcFree(by, bm, bd, eventYear) {
+      const cutoff = new Date(eventYear, 0, 1);
+      const dob = new Date(by, bm - 1, bd);
+      const age = ageAt(dob, cutoff);
+      if (age < 9) return { status:'no', msg:`<span class="bold">Too young</span> — born ${fmt(by,bm,bd)}, this contestant would only be ${age} on January 1, ${eventYear}. Minimum eligible age is 9.` };
+      if (age > 14) return { status:'no', msg:`<span class="bold">Too old</span> — born ${fmt(by,bm,bd)}, this contestant would be ${age} on January 1, ${eventYear}. Maximum eligible age is 14.` };
+      const jan1Edge = (bm === 1 && bd === 1) ? ` (born exactly on Jan. 1 — already turned ${age} on the cutoff date itself)` : '';
+      return { status:'ok', msg:`Age group: <span class="bold">${age}</span> — born ${fmt(by,bm,bd)}, this contestant is ${age} as of January 1, ${eventYear}, because they were born in ${by}${jan1Edge}.` };
+    }
 
-  function ageAt(dob, cutoff) {
-    let age = cutoff.getFullYear() - dob.getFullYear();
-    const hadBirthday = (cutoff.getMonth() > dob.getMonth()) ||
-      (cutoff.getMonth() === dob.getMonth() && cutoff.getDate() >= dob.getDate());
-    if (!hadBirthday) age--;
-    return age;
-  }
+    function ageAt(dob, cutoff) {
+      let age = cutoff.getFullYear() - dob.getFullYear();
+      const hadBirthday = (cutoff.getMonth() > dob.getMonth()) ||
+        (cutoff.getMonth() === dob.getMonth() && cutoff.getDate() >= dob.getDate());
+      if (!hadBirthday) age--;
+      return age;
+    }
 
-  function fmt(y, m, d) {
-    return new Date(y, m-1, d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-  }
-  function fmtD(d) {
-    return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-  }
+    function fmt(y, m, d) {
+      return new Date(y, m-1, d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    }
+    function fmtD(d) {
+      return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    }
 
-  document.getElementById('yr-input').value = new Date().getFullYear();
-  refreshNote();
-</script>
+    document.getElementById('yr-input').value = new Date().getFullYear();
+    refreshNote();
+  </script>
+</body>
+</html>
