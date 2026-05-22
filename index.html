@@ -66,13 +66,13 @@
       transition: all 0.15s;
       text-align: center;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
     .evt-card:hover { border-color: #c5c5c3; background: #f5f5f4; }
     .evt-card:active { transform: scale(0.98); }
     .evt-card .icon { font-size: 32px; margin-bottom: 8px; display: block; }
     .evt-card .name { font-size: 14px; font-weight: 500; color: #1a1a1a; }
-
     .evt-card .cutoff-tag {
       display: inline-block;
       margin-top: 8px;
@@ -101,7 +101,7 @@
       border-radius: 8px;
       padding: 10px 12px;
       outline: none;
-      transition: border-color 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
 
     input[type="text"]:focus {
@@ -115,6 +115,7 @@
       letter-spacing: 0.08em;
     }
 
+    /* DOB input row */
     .dob-wrap {
       position: relative;
       display: flex;
@@ -125,7 +126,7 @@
       width: 100%;
       font-size: 18px;
       letter-spacing: 0.04em;
-      padding: 12px 44px 12px 14px;
+      padding: 12px 40px 12px 14px; /* right padding leaves room for clear btn */
     }
 
     #dob-input.has-error {
@@ -135,26 +136,21 @@
 
     #dob-clear {
       position: absolute;
-      right: 12px;
-      background: #e5e5e3;
+      right: 10px;
+      background: none;
       border: none;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      display: none;
-      align-items: center;
-      justify-content: center;
       cursor: pointer;
-      font-size: 13px;
-      color: #5a5a5a;
+      font-size: 16px;
+      color: #9a9a9a;
+      padding: 4px 6px;
+      border-radius: 4px;
+      display: none; /* hidden until there's input */
       line-height: 1;
       -webkit-tap-highlight-color: transparent;
-      transition: background 0.15s;
     }
 
-    #dob-clear:hover { background: #d0d0ce; }
-    #dob-clear:active { transform: scale(0.92); }
-    #dob-clear.visible { display: flex; }
+    #dob-clear.visible { display: block; }
+    #dob-clear:hover { color: #1a1a1a; }
 
     .dob-hint {
       font-size: 12px;
@@ -219,15 +215,20 @@
 
     <div class="step">
       <div class="step-label">2 — Year of the event</div>
-      <input type="text" id="yr-input" maxlength="4" inputmode="numeric" placeholder="YYYY" oninput="onYearInput(this)" />
+      <input type="text" id="yr-input" maxlength="4" inputmode="numeric"
+        placeholder="YYYY" oninput="onYearInput(this)" />
       <div class="step-sub" id="cutoff-note"></div>
     </div>
 
     <div class="step">
       <div class="step-label">3 — Contestant's date of birth</div>
       <div class="dob-wrap">
-        <input type="text" id="dob-input" inputmode="numeric" placeholder="MM/DD/YYYY" maxlength="10" oninput="onDobInput(this)" autocomplete="off" />
-        <button id="dob-clear" onclick="clearDob()" aria-label="Clear date of birth">✕</button>
+        <input type="text" id="dob-input" inputmode="numeric"
+          placeholder="MM/DD/YYYY" maxlength="10"
+          oninput="onDobInput(this)"
+          onkeydown="onDobKeydown(event, this)"
+          autocomplete="off" />
+        <button id="dob-clear" onclick="clearDob()" aria-label="Clear date">✕</button>
       </div>
       <div class="dob-hint">Type the date — slashes are added automatically</div>
     </div>
@@ -240,66 +241,22 @@
   <script>
     let currentEvent = 'soccer';
 
+    // ── Event selector ───────────────────────────────────────────
     function pick(e) {
       currentEvent = e;
-      document.getElementById('card-soccer').className = 'evt-card' + (e === 'soccer' ? ' active-soccer' : '');
-      document.getElementById('card-free').className = 'evt-card' + (e === 'free' ? ' active-free' : '');
+      document.getElementById('card-soccer').className =
+        'evt-card' + (e === 'soccer' ? ' active-soccer' : '');
+      document.getElementById('card-free').className =
+        'evt-card' + (e === 'free' ? ' active-free' : '');
       refreshNote();
       update();
     }
 
+    // ── Year input ───────────────────────────────────────────────
     function onYearInput(el) {
       el.value = el.value.replace(/\D/g, '').slice(0, 4);
       refreshNote();
       update();
-    }
-
-    function onDobInput(el) {
-      let raw = el.value.replace(/\D/g, '').slice(0, 8);
-      let masked = '';
-      if (raw.length <= 2) {
-        masked = raw;
-      } else if (raw.length <= 4) {
-        masked = raw.slice(0,2) + '/' + raw.slice(2);
-      } else {
-        masked = raw.slice(0,2) + '/' + raw.slice(2,4) + '/' + raw.slice(4);
-      }
-      el.value = masked;
-      el.classList.remove('has-error');
-
-      const clearBtn = document.getElementById('dob-clear');
-      clearBtn.classList.toggle('visible', masked.length > 0);
-
-      if (masked.length === 10) {
-        const parsed = parseDob(masked);
-        if (!parsed) el.classList.add('has-error');
-      }
-      update();
-    }
-
-    function clearDob() {
-      const el = document.getElementById('dob-input');
-      el.value = '';
-      el.classList.remove('has-error');
-      document.getElementById('dob-clear').classList.remove('visible');
-      el.focus();
-      update();
-    }
-
-    function parseDob(str) {
-      if (!str || str.length !== 10) return null;
-      const parts = str.split('/');
-      if (parts.length !== 3) return null;
-      const m = parseInt(parts[0]);
-      const d = parseInt(parts[1]);
-      const y = parseInt(parts[2]);
-      if (isNaN(m) || isNaN(d) || isNaN(y)) return null;
-      if (m < 1 || m > 12) return null;
-      if (d < 1 || d > 31) return null;
-      if (y < 1900 || y > new Date().getFullYear()) return null;
-      const date = new Date(y, m - 1, d);
-      if (date.getMonth() !== m - 1 || date.getDate() !== d) return null;
-      return { y, m, d };
     }
 
     function getYear() {
@@ -321,6 +278,79 @@
         : `Age cutoff: <strong>January 1, ${y}</strong> — regardless of the actual event date.`;
     }
 
+    // ── DOB masked input ─────────────────────────────────────────
+    // Track raw digits separately so backspace works cleanly
+    let dobDigits = '';
+
+    function onDobKeydown(e, el) {
+      if (e.key === 'Backspace') {
+        e.preventDefault();
+        // Remove last digit
+        dobDigits = dobDigits.slice(0, -1);
+        el.value = formatDob(dobDigits);
+        el.classList.remove('has-error');
+        syncClearBtn(el.value);
+        update();
+      }
+    }
+
+    function onDobInput(el) {
+      // Strip everything non-digit from whatever was typed/pasted
+      const incoming = el.value.replace(/\D/g, '');
+      // Rebuild dobDigits from scratch based on current raw input
+      // (handles paste correctly too)
+      dobDigits = incoming.slice(0, 8);
+      el.value = formatDob(dobDigits);
+      el.classList.remove('has-error');
+
+      if (dobDigits.length === 8) {
+        const parsed = parseDob(el.value);
+        if (!parsed) el.classList.add('has-error');
+      }
+
+      syncClearBtn(el.value);
+      update();
+    }
+
+    function formatDob(digits) {
+      if (digits.length <= 2) return digits;
+      if (digits.length <= 4) return digits.slice(0,2) + '/' + digits.slice(2);
+      return digits.slice(0,2) + '/' + digits.slice(2,4) + '/' + digits.slice(4);
+    }
+
+    function syncClearBtn(val) {
+      document.getElementById('dob-clear').classList.toggle('visible', val.length > 0);
+    }
+
+    function clearDob() {
+      dobDigits = '';
+      const el = document.getElementById('dob-input');
+      el.value = '';
+      el.classList.remove('has-error');
+      syncClearBtn('');
+      el.focus();
+      update();
+    }
+
+    // ── Date parsing & validation ────────────────────────────────
+    function parseDob(str) {
+      if (!str || str.length !== 10) return null;
+      const parts = str.split('/');
+      if (parts.length !== 3) return null;
+      const m = parseInt(parts[0]);
+      const d = parseInt(parts[1]);
+      const y = parseInt(parts[2]);
+      if (isNaN(m) || isNaN(d) || isNaN(y)) return null;
+      if (m < 1 || m > 12) return null;
+      if (d < 1 || d > 31) return null;
+      if (y < 1900) return null;
+      // Catch invalid calendar dates (e.g. Feb 30, Apr 31)
+      const date = new Date(y, m - 1, d);
+      if (date.getMonth() !== m - 1 || date.getDate() !== d) return null;
+      return { y, m, d };
+    }
+
+    // ── Result update ────────────────────────────────────────────
     function update() {
       const y = getYear();
       const dobStr = document.getElementById('dob-input').value;
@@ -344,42 +374,52 @@
       text.innerHTML = res.msg;
     }
 
+    // ── Age calculations ─────────────────────────────────────────
     function calcSoccer(by, bm, bd, eventYear) {
-      const cutoff = new Date(eventYear, 8, 1);
+      const cutoff = new Date(eventYear, 8, 1); // Sept 1
       const dob = new Date(by, bm - 1, bd);
       const age = ageAt(dob, cutoff);
-      if (age < 9) return { status:'no', msg:`<span class="bold">Too young</span> — born ${fmt(by,bm,bd)}, this contestant would only be ${age} on Sept. 1, ${eventYear}. Minimum eligible age is 9.` };
+      const displayAge = Math.max(age, 0);
+      if (age < 9) return { status:'no', msg:`<span class="bold">Too young</span> — born ${fmt(by,bm,bd)}, this contestant would only be ${displayAge} on Sept. 1, ${eventYear}. Minimum eligible age is 9.` };
       if (age > 14) return { status:'no', msg:`<span class="bold">Too old</span> — born ${fmt(by,bm,bd)}, this contestant would be ${age} on Sept. 1, ${eventYear}. Maximum eligible age is 14.` };
       const start = new Date(eventYear - age, 8, 2);
-      const end = new Date(eventYear - age + 1, 8, 1);
+      const end   = new Date(eventYear - age + 1, 8, 1);
       return { status:'ok', msg:`Age group: <span class="bold">${age}</span> — born ${fmt(by,bm,bd)}, this contestant is ${age} as of Sept. 1, ${eventYear}, because their birth date falls in the age-${age} window (${fmtD(start)} – ${fmtD(end)}).` };
     }
 
     function calcFree(by, bm, bd, eventYear) {
-      const cutoff = new Date(eventYear, 0, 1);
+      const cutoff = new Date(eventYear, 0, 1); // Jan 1
       const dob = new Date(by, bm - 1, bd);
       const age = ageAt(dob, cutoff);
-      if (age < 9) return { status:'no', msg:`<span class="bold">Too young</span> — born ${fmt(by,bm,bd)}, this contestant would only be ${age} on January 1, ${eventYear}. Minimum eligible age is 9.` };
+      const displayAge = Math.max(age, 0);
+      if (age < 9) return { status:'no', msg:`<span class="bold">Too young</span> — born ${fmt(by,bm,bd)}, this contestant would only be ${displayAge} on January 1, ${eventYear}. Minimum eligible age is 9.` };
       if (age > 14) return { status:'no', msg:`<span class="bold">Too old</span> — born ${fmt(by,bm,bd)}, this contestant would be ${age} on January 1, ${eventYear}. Maximum eligible age is 14.` };
-      const jan1Edge = (bm === 1 && bd === 1) ? ` (born exactly on Jan. 1 — already turned ${age} on the cutoff date itself)` : '';
+      const jan1Edge = (bm === 1 && bd === 1)
+        ? ` (born exactly on Jan. 1 — already turned ${age} on the cutoff date itself)` : '';
       return { status:'ok', msg:`Age group: <span class="bold">${age}</span> — born ${fmt(by,bm,bd)}, this contestant is ${age} as of January 1, ${eventYear}, because they were born in ${by}${jan1Edge}.` };
     }
 
+    // ── Helpers ──────────────────────────────────────────────────
     function ageAt(dob, cutoff) {
       let age = cutoff.getFullYear() - dob.getFullYear();
-      const hadBirthday = (cutoff.getMonth() > dob.getMonth()) ||
+      const hadBirthday =
+        cutoff.getMonth() > dob.getMonth() ||
         (cutoff.getMonth() === dob.getMonth() && cutoff.getDate() >= dob.getDate());
       if (!hadBirthday) age--;
       return age;
     }
 
     function fmt(y, m, d) {
-      return new Date(y, m-1, d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-    }
-    function fmtD(d) {
-      return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+      return new Date(y, m-1, d).toLocaleDateString('en-US',
+        { month:'short', day:'numeric', year:'numeric' });
     }
 
+    function fmtD(d) {
+      return d.toLocaleDateString('en-US',
+        { month:'short', day:'numeric', year:'numeric' });
+    }
+
+    // ── Init ─────────────────────────────────────────────────────
     document.getElementById('yr-input').value = new Date().getFullYear();
     refreshNote();
   </script>
