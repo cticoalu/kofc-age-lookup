@@ -70,14 +70,8 @@
 
     .evt-card:hover { border-color: #c5c5c3; background: #f5f5f4; }
     .evt-card:active { transform: scale(0.98); }
-
     .evt-card .icon { font-size: 32px; margin-bottom: 8px; display: block; }
-
-    .evt-card .name {
-      font-size: 14px;
-      font-weight: 500;
-      color: #1a1a1a;
-    }
+    .evt-card .name { font-size: 14px; font-weight: 500; color: #1a1a1a; }
 
     .evt-card .cutoff-tag {
       display: inline-block;
@@ -98,7 +92,7 @@
     .evt-card.active-free .name { color: #0C447C; }
     .evt-card.active-free .cutoff-tag { background: #B5D4F4; color: #0C447C; border-color: #85B7EB; }
 
-    input[type="text"], input[type="date"] {
+    input[type="text"] {
       font-family: 'Inter', system-ui, sans-serif;
       font-size: 15px;
       color: #1a1a1a;
@@ -108,21 +102,65 @@
       padding: 10px 12px;
       outline: none;
       transition: border-color 0.15s;
-
     }
 
-    input[type="text"]:focus, input[type="date"]:focus {
+    input[type="text"]:focus {
       border-color: #378ADD;
       box-shadow: 0 0 0 3px rgba(55,138,221,0.15);
     }
 
-    input[type="text"] {
+    #yr-input {
       width: 120px;
       text-align: center;
       letter-spacing: 0.08em;
     }
 
-    input[type="date"] { width: 100%; }
+    .dob-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    #dob-input {
+      width: 100%;
+      font-size: 18px;
+      letter-spacing: 0.04em;
+      padding: 12px 44px 12px 14px;
+    }
+
+    #dob-input.has-error {
+      border-color: #E24B4A;
+      box-shadow: 0 0 0 3px rgba(226,75,74,0.15);
+    }
+
+    #dob-clear {
+      position: absolute;
+      right: 12px;
+      background: #e5e5e3;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 13px;
+      color: #5a5a5a;
+      line-height: 1;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+
+    #dob-clear:hover { background: #d0d0ce; }
+    #dob-clear:active { transform: scale(0.92); }
+    #dob-clear.visible { display: flex; }
+
+    .dob-hint {
+      font-size: 12px;
+      color: #9a9a9a;
+      margin-top: 6px;
+    }
 
     .result-card {
       border-radius: 12px;
@@ -135,22 +173,10 @@
       transition: all 0.2s;
     }
 
-    .result-card.ok {
-      border-color: #1D9E75;
-      background: #E1F5EE;
-    }
+    .result-card.ok { border-color: #1D9E75; background: #E1F5EE; }
+    .result-card.no { border-color: #E24B4A; background: #FCEBEB; }
 
-    .result-card.no {
-      border-color: #E24B4A;
-      background: #FCEBEB;
-    }
-
-    .result-text {
-      font-size: 15px;
-      line-height: 1.65;
-      color: #9a9a9a;
-    }
-
+    .result-text { font-size: 15px; line-height: 1.65; color: #9a9a9a; }
     .result-text.ok { color: #085041; }
     .result-text.no { color: #7a1f1f; }
     .bold { font-weight: 500; }
@@ -199,7 +225,11 @@
 
     <div class="step">
       <div class="step-label">3 — Contestant's date of birth</div>
-      <input type="date" id="dob" onchange="update()" />
+      <div class="dob-wrap">
+        <input type="text" id="dob-input" inputmode="numeric" placeholder="MM/DD/YYYY" maxlength="10" oninput="onDobInput(this)" autocomplete="off" />
+        <button id="dob-clear" onclick="clearDob()" aria-label="Clear date of birth">✕</button>
+      </div>
+      <div class="dob-hint">Type the date — slashes are added automatically</div>
     </div>
 
     <div class="result-card" id="rcard">
@@ -208,10 +238,10 @@
   </div>
 
   <script>
-    let event = 'soccer';
+    let currentEvent = 'soccer';
 
     function pick(e) {
-      event = e;
+      currentEvent = e;
       document.getElementById('card-soccer').className = 'evt-card' + (e === 'soccer' ? ' active-soccer' : '');
       document.getElementById('card-free').className = 'evt-card' + (e === 'free' ? ' active-free' : '');
       refreshNote();
@@ -224,6 +254,54 @@
       update();
     }
 
+    function onDobInput(el) {
+      let raw = el.value.replace(/\D/g, '').slice(0, 8);
+      let masked = '';
+      if (raw.length <= 2) {
+        masked = raw;
+      } else if (raw.length <= 4) {
+        masked = raw.slice(0,2) + '/' + raw.slice(2);
+      } else {
+        masked = raw.slice(0,2) + '/' + raw.slice(2,4) + '/' + raw.slice(4);
+      }
+      el.value = masked;
+      el.classList.remove('has-error');
+
+      const clearBtn = document.getElementById('dob-clear');
+      clearBtn.classList.toggle('visible', masked.length > 0);
+
+      if (masked.length === 10) {
+        const parsed = parseDob(masked);
+        if (!parsed) el.classList.add('has-error');
+      }
+      update();
+    }
+
+    function clearDob() {
+      const el = document.getElementById('dob-input');
+      el.value = '';
+      el.classList.remove('has-error');
+      document.getElementById('dob-clear').classList.remove('visible');
+      el.focus();
+      update();
+    }
+
+    function parseDob(str) {
+      if (!str || str.length !== 10) return null;
+      const parts = str.split('/');
+      if (parts.length !== 3) return null;
+      const m = parseInt(parts[0]);
+      const d = parseInt(parts[1]);
+      const y = parseInt(parts[2]);
+      if (isNaN(m) || isNaN(d) || isNaN(y)) return null;
+      if (m < 1 || m > 12) return null;
+      if (d < 1 || d > 31) return null;
+      if (y < 1900 || y > new Date().getFullYear()) return null;
+      const date = new Date(y, m - 1, d);
+      if (date.getMonth() !== m - 1 || date.getDate() !== d) return null;
+      return { y, m, d };
+    }
+
     function getYear() {
       const v = document.getElementById('yr-input').value;
       return v.length === 4 ? parseInt(v) : null;
@@ -233,29 +311,34 @@
       const y = getYear();
       const note = document.getElementById('cutoff-note');
       if (!y) {
-        note.innerHTML = event === 'soccer'
+        note.innerHTML = currentEvent === 'soccer'
           ? 'Age is always determined as of <strong>Sept. 1</strong> of that year, per the rulebook.'
           : 'Age is always determined as of <strong>January 1</strong> of that year, per the rulebook.';
         return;
       }
-      note.innerHTML = event === 'soccer'
+      note.innerHTML = currentEvent === 'soccer'
         ? `Age cutoff: <strong>Sept. 1, ${y}</strong> — regardless of the actual event date.`
         : `Age cutoff: <strong>January 1, ${y}</strong> — regardless of the actual event date.`;
     }
 
     function update() {
       const y = getYear();
-      const dob = document.getElementById('dob').value;
+      const dobStr = document.getElementById('dob-input').value;
       const card = document.getElementById('rcard');
       const text = document.getElementById('rtext');
-      if (!y || !dob) {
+      const parsed = parseDob(dobStr);
+
+      if (!y || !parsed) {
         card.className = 'result-card';
         text.className = 'result-text';
         text.innerHTML = 'Complete the steps above to see the age group.';
         return;
       }
-      const [by, bm, bd] = dob.split('-').map(Number);
-      const res = event === 'soccer' ? calcSoccer(by, bm, bd, y) : calcFree(by, bm, bd, y);
+
+      const res = currentEvent === 'soccer'
+        ? calcSoccer(parsed.y, parsed.m, parsed.d, y)
+        : calcFree(parsed.y, parsed.m, parsed.d, y);
+
       card.className = 'result-card ' + res.status;
       text.className = 'result-text ' + res.status;
       text.innerHTML = res.msg;
