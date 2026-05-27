@@ -384,7 +384,7 @@
       if (age > 14) return { status:'no', msg:`<span class="bold">Too old</span> — born ${fmt(by,bm,bd)}, this contestant would be ${age} on Sept. 1, ${eventYear}. Maximum eligible age is 14.` };
       const start = new Date(eventYear - age - 1, 8, 2);
       const end   = new Date(eventYear - age, 8, 1);
-      return { status:'ok', msg:`Age group: <span class="bold">${age}</span> — born ${fmt(by,bm,bd)}, this contestant is ${age} as of Sept. 1, ${eventYear}, because their birth date falls in the age-${age} window (${fmtD(start)} – ${fmtD(end)}).` };
+      return { status:'ok', msg:`AGE GROUP: <span class="bold">${age}</span><br>Eligible birth dates: ${fmtD(start)} – ${fmtD(end)}<br>Contestant born ${fmt(by,bm,bd)} is age ${age} as of Sept. 1, ${eventYear}.` };
     }
 
     function calcFree(by, bm, bd, eventYear) {
